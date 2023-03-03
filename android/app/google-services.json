@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "468965230312",
+    "project_id": "childhouse-flutter-project",
+    "storage_bucket": "childhouse-flutter-project.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:468965230312:android:2fc16f2baaa6bfdc2deb5d",
+        "android_client_info": {
+          "package_name": "com.ChildHousearb.childhouse"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "468965230312-nccr6518f6q6gq49ujd2tgf2lc6fko58.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBMhhB6T5bn0Kaoj7xZccK6FVLzjJpR2Fs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "468965230312-nccr6518f6q6gq49ujd2tgf2lc6fko58.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
