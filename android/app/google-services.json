@@ -29,6 +29,13 @@
             {
               "client_id": "468965230312-nccr6518f6q6gq49ujd2tgf2lc6fko58.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "468965230312-bda5ivij52e4dfq0lf16j71k3ic98gim.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.ChildHousearb.childhouse"
+              }
             }
           ]
         }

@@ -1,11 +1,12 @@
 import 'package:childhouse/contains/route.dart';
-import 'package:childhouse/utilities/show_error_dialog.dart';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'dart:developer' as devtools show log;
+
 
 import '../firebase_options.dart';
+import '../utilities/dialogs/error_dialog.dart';
 
 class ViewRegister extends StatefulWidget {
   const ViewRegister({super.key});
@@ -100,7 +101,7 @@ class _ViewRegisterState extends State<ViewRegister> {
                       TextButton(
                           onPressed: () {
                             Navigator.of(context).pushNamedAndRemoveUntil(
-                              loginview,
+                              loginRoute,
                               (route) => false,
                             );
                           },

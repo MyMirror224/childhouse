@@ -1,10 +1,14 @@
 import 'package:childhouse/contains/route.dart';
-import 'package:childhouse/utilities/show_error_dialog.dart';
+import 'package:childhouse/services/auth/auth_service.dart';
+
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'dart:developer' as devtools show log;
+
 import '../firebase_options.dart';
+import '../utilities/dialogs/error_dialog.dart';
+
 
 class ViewLogin extends StatefulWidget {
   const ViewLogin({super.key});
@@ -73,21 +77,35 @@ class _ViewLoginState extends State<ViewLogin> {
                                 email: email,
                                 password: password,
                               );
-                              // ignore: use_build_context_synchronously
-                              Navigator.of(context)
-                                  .pushNamedAndRemoveUntil(
-                                childhouseview,
+                              final user = AuthService.firebase().currentUser;
+                              
+                                if (user?.isEmailVerify ?? false) {
+                                  // ignore: use_build_context_synchronously
+                                  Navigator.of(context).pushNamedAndRemoveUntil(
+                                childhouseRoute,
                                 (_) => false,
                               );
+                                } else {
+                                  // ignore: use_build_context_synchronously
+                                  Navigator.of(context).pushNamedAndRemoveUntil(
+                                verifyRoute,
+                                (_) => false,
+                              );
+                                }
+                              
+                              // ignore: use_build_context_synchronously
+                              
                             } on FirebaseAuthException catch (e) {
                               if (e.code == "user-not-found") {
-                                await showErrorDialog(context,"User not found" );
+                                await showErrorDialog(
+                                    context, "User not found");
                               } else if (e.code == "wrong-password") {
-                                await showErrorDialog(context,"Wrong password" );
+                                await showErrorDialog(
+                                    context, "Wrong password");
                               } else if (e.code == "invalid-email") {
-                                await showErrorDialog(context,"Invalid email" );
-                              } 
-                            } catch (e){
+                                await showErrorDialog(context, "Invalid email");
+                              }
+                            } catch (e) {
                               await showErrorDialog(context, e.toString());
                             }
                           },
@@ -95,7 +113,7 @@ class _ViewLoginState extends State<ViewLogin> {
                       TextButton(
                           onPressed: () {
                             Navigator.of(context).pushNamedAndRemoveUntil(
-                              registerview,
+                              registerRoute,
                               (_) => false,
                             );
                           },
@@ -108,6 +126,4 @@ class _ViewLoginState extends State<ViewLogin> {
               }
             }));
   }
-  
 }
-

@@ -1,0 +1,112 @@
+import 'package:flutter/material.dart';
+import '../../contains/route.dart';
+import '../../services/auth/auth_service.dart';
+import '../../services/crud/notes_service.dart';
+import '../../utilities/dialogs/logout_dialog.dart';
+import 'list_note_view.dart';
+
+enum MenuAction { logout }
+
+class NotesView extends StatefulWidget {
+  const NotesView({super.key});
+
+  @override
+  State<NotesView> createState() => _NotesViewState();
+}
+
+class _NotesViewState extends State<NotesView> {
+  late final NoteService _noteService;
+  String get userEmail => AuthService.firebase().currentUser!.email!;
+  @override
+  void initState() {
+    _noteService = NoteService();
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _noteService.close();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        appBar: AppBar(
+          title: const Text("Menu"),
+          actions: [
+            IconButton(
+              onPressed: () {
+                Navigator.of(context).pushNamed(createOrUpdateNoteRoute);
+              },
+              icon: const Icon(Icons.add),
+            ),
+            PopupMenuButton<MenuAction>(
+              onSelected: (value) async {
+                switch (value) {
+                  case MenuAction.logout:
+                    final navigator = Navigator.of(context);
+                    final showLogout = await showLogOutDialog(context);
+                    if (showLogout) {
+                      await AuthService.firebase().logOut();
+                      navigator.pushNamedAndRemoveUntil(
+                        loginRoute,
+                        (_) => false,
+                      );
+                    }
+                }
+              },
+              itemBuilder: ((context) {
+                return const [
+                  PopupMenuItem(
+                    value: MenuAction.logout,
+                    child: Text("Log out"),
+                  )
+                ];
+              }),
+            )
+          ],
+        ),
+        body: FutureBuilder(
+          future: _noteService.getOrCreateUser(email: userEmail),
+          builder: (context, snapshot) {
+            switch (snapshot.connectionState) {
+              case ConnectionState.done:
+                return StreamBuilder(
+                  stream: _noteService.allNotes,
+                  builder: (context, snapshot) {
+                    switch (snapshot.connectionState) {
+                      case ConnectionState.waiting:
+                      case ConnectionState.active:
+                      if(snapshot.hasData){
+                          final allnote = snapshot.data as List<DatabaseNote>;
+                          return ListNoteView(
+                            notes: allnote,
+                            onDeleteNote: (note) async{
+                              await _noteService.deleteNote(id: note.id);
+                            },
+                            onTap: (note) {
+                              Navigator.of(context).pushNamed(
+                                createOrUpdateNoteRoute,
+                                arguments: note,
+                              );
+                            },
+                          );
+                      } else {
+                        return const CircularProgressIndicator();
+                      }
+                        
+                      default:
+                        return const CircularProgressIndicator();
+                    }
+                  },
+                );
+              default:
+                return const CircularProgressIndicator();
+            }
+          },
+        ));
+  }
+}
+
+
