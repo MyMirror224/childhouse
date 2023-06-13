@@ -1,12 +1,10 @@
 import 'package:childhouse/contains/route.dart';
 import 'package:childhouse/services/auth/auth_service.dart';
-
-
+import 'package:childhouse/services/auth/bloc/auth_bloc.dart';
+import 'package:childhouse/services/auth/bloc/auth_event.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-
-import '../firebase_options.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../utilities/dialogs/error_dialog.dart';
 
 
@@ -42,14 +40,7 @@ class _ViewLoginState extends State<ViewLogin> {
         appBar: AppBar(
           title: const Text('Login'),
         ),
-        body: FutureBuilder(
-            future: Firebase.initializeApp(
-              options: DefaultFirebaseOptions.currentPlatform,
-            ),
-            builder: (context, snapshot) {
-              switch (snapshot.connectionState) {
-                case ConnectionState.done:
-                  return Column(
+        body:  Column(
                     children: [
                       TextField(
                         controller: _email,
@@ -69,14 +60,11 @@ class _ViewLoginState extends State<ViewLogin> {
                       ),
                       TextButton(
                           onPressed: () async {
-                            try {
-                              final email = _email.text;
+                            final email = _email.text;
                               final password = _password.text;
-                              await FirebaseAuth.instance
-                                  .signInWithEmailAndPassword(
-                                email: email,
-                                password: password,
-                              );
+                            try {
+                              
+                              context.read<AuthBloc>().add( AuthEventLogin(email, password));
                               final user = AuthService.firebase().currentUser;
                               
                                 if (user?.isEmailVerify ?? false) {
@@ -88,7 +76,7 @@ class _ViewLoginState extends State<ViewLogin> {
                                 } else {
                                   // ignore: use_build_context_synchronously
                                   Navigator.of(context).pushNamedAndRemoveUntil(
-                                verifyRoute,
+                                verifyEmailRoute,
                                 (_) => false,
                               );
                                 }
@@ -120,10 +108,7 @@ class _ViewLoginState extends State<ViewLogin> {
                           child:
                               const Text("Not Registered yet? Register here!"))
                     ],
-                  );
-                default:
-                  return const Text("Loading....");
-              }
-            }));
+                  )   
+            );
   }
 }

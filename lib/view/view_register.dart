@@ -1,4 +1,5 @@
 import 'package:childhouse/contains/route.dart';
+import 'package:childhouse/services/auth/auth_service.dart';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -70,12 +71,9 @@ class _ViewRegisterState extends State<ViewRegister> {
                             try {
                               final email = _email.text;
                               final password = _password.text;
-                               await FirebaseAuth.instance
-                                  .createUserWithEmailAndPassword(
-                                email: email,
-                                password: password,
-                              );
-                              
+                              AuthService.firebase().createUser(email: email, password: password);
+                              AuthService.firebase().sendEmailVerification();
+                              Navigator.of(context).pushNamed(verifyEmailRoute);
                             } on FirebaseAuthException catch (e) {
                               if (e.code == "invalid-email") {
                                 await showErrorDialog(

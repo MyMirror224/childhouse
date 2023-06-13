@@ -1,5 +1,9 @@
 import 'package:childhouse/contains/route.dart';
-import 'package:childhouse/services/auth/auth_service.dart';
+
+import 'package:childhouse/services/auth/bloc/auth_bloc.dart';
+import 'package:childhouse/services/auth/bloc/auth_event.dart';
+import 'package:childhouse/services/auth/bloc/auth_state.dart';
+import 'package:childhouse/services/auth/firebase_auth_provider.dart';
 import 'package:childhouse/view/notes/create_update_note_view.dart';
 
 import 'package:childhouse/view/notes/view_notes.dart';
@@ -8,6 +12,8 @@ import 'package:childhouse/view/view_register.dart';
 import 'package:childhouse/view/view_verify.dart';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
 
 
 void main() {
@@ -18,12 +24,14 @@ void main() {
     theme: ThemeData(
       primarySwatch: Colors.blue,
     ),
-    home: const HomePage(),
+    home: BlocProvider(create: (context) => AuthBloc(FirebaseAuthProvider()),
+    child:const  HomePage(),
+    ),
     routes: {
       loginRoute: (context) => const ViewLogin(),
       registerRoute: (context) => const ViewRegister(),
       childhouseRoute: (context) => const NotesView(),
-      verifyRoute :(context) => const VerifyEmailView(),
+      verifyEmailRoute :(context) => const VerifyEmailView(),
       createOrUpdateNoteRoute: (context) => const CreateUpdateNoteView(),
     },
   ));
@@ -34,24 +42,20 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder(
-        future: AuthService.firebase().initialize(),
-        builder: (context, snapshot) {
-          switch (snapshot.connectionState) {
-            case ConnectionState.done:
-              final user = AuthService.firebase().currentUser;
-              if (user != null) {
-                if (user.isEmailVerify) {
-                  return const NotesView();
-                } else {
-                  return const VerifyEmailView();
-                }
-              }
-              return const ViewLogin();
-            default:
-              return const CircularProgressIndicator();
+    context.read<AuthBloc>().add(const AuthEventInitialize());
+    return BlocBuilder<AuthBloc, AuthState>(
+        builder: (context, state) {
+          if( state is AuthStateLoggedIn){
+            return const NotesView();
+          } else if( state is AuthStateLoggedOut) {
+            return const ViewLogin();
+          } else if (state is AuthStateNeedsVerification){
+            return const VerifyEmailView();
+          } else {
+            return const CircularProgressIndicator();
           }
-        });
+        }
+        );   
   }
 }
 

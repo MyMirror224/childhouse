@@ -1,7 +1,11 @@
 import 'package:childhouse/services/auth/auth_service.dart';
-import 'package:childhouse/services/crud/notes_service.dart';
+import 'package:childhouse/services/cloud/cloud_note.dart';
+import 'package:childhouse/services/cloud/firebase_cloud_storage.dart';
+import 'package:childhouse/utilities/dialogs/cannot_share_empty_dialog.dart';
+
 import 'package:childhouse/utilities/generic/get_agument.dart';
 import 'package:flutter/material.dart';
+import 'package:share_plus/share_plus.dart';
 
 class CreateUpdateNoteView extends StatefulWidget {
   const CreateUpdateNoteView({super.key});
@@ -11,12 +15,12 @@ class CreateUpdateNoteView extends StatefulWidget {
 }
 
 class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
-  DatabaseNote? _note;
-  late final NoteService _notesService;
+  CloudNote? _note;
+  late final FirebaseCloudStorage _notesService;
   late final TextEditingController _textController;
   @override
   void initState() {
-    _notesService = NoteService();
+    _notesService = FirebaseCloudStorage();
     _textController = TextEditingController();
     super.initState();
   }
@@ -28,16 +32,16 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
     }
     final text = _textController.text;
     await _notesService.updateNote(
-      note: note,
+      documentId: note.documentId,
       text: text,
     );
   }
   void _setupTextControllerListener(){
     _textController.removeListener(_textControllerListener);
-    _textController.addListener(_setupTextControllerListener);
+    _textController.addListener(_textControllerListener);
   }
-  Future<DatabaseNote> createOrGetExistNote() async{
-      final widgetNote = context.getArgument<DatabaseNote>();
+  Future<CloudNote> createOrGetExistNote() async{
+      final widgetNote = context.getArgument<CloudNote>();
       if(widgetNote != null){
         _note = widgetNote;
         _textController.text = widgetNote.text;
@@ -48,23 +52,22 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
         return exitedNote;
       }
       final currentUser= AuthService.firebase().currentUser!;
-      final email= currentUser.email!;
-      final owner = await _notesService.getUser(email: email);
-      final newNote= await _notesService.createNote(owner: owner);
+      final userId= currentUser.id;
+      final newNote = await _notesService.createNewNote(ownerUserId: userId);
       _note= newNote;
       return newNote;
   }
   void _deleteNoteIfTextEmpty(){
       final note= _note;
       if(_textController.text.isEmpty && note != null){
-        _notesService.deleteNote(id: note.id);
+        _notesService.deleteNote(documentId: note.documentId);
       }
   }
   void _saveNoteIfTextNotEmpty() async {
       final note= _note;
       final text = _textController.text;
       if(text.isNotEmpty && note !=null){
-        await _notesService.updateNote(note: note, text: text);
+        await _notesService.updateNote(documentId: note.documentId, text: text);
       }
   }
   @override
@@ -77,7 +80,20 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('New Note')),
+      appBar: AppBar(title: const Text('New Note'),
+      actions: [
+        IconButton(onPressed: ()  async{
+          final text= _textController.text;
+          if(_note == null || text.isEmpty){
+            await showCannotShareEmptyDialog(context);
+          } else{
+            Share.share(text);
+          }
+        },
+        icon: const Icon(Icons.share))
+      ],
+      ),
+      
       body: FutureBuilder(
         future: createOrGetExistNote(),
         builder: (context, snapshot) {
@@ -86,7 +102,9 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
               _setupTextControllerListener();
               return  TextField(
                 controller: _textController,
-                keyboardType:  TextInputType.multiline,
+                autofocus: true,
+                enableSuggestions: false,
+                keyboardType:  TextInputType.text,
                 maxLines: null,
                 decoration:const  InputDecoration(hintText: 'Start typing your note...'),
               );
