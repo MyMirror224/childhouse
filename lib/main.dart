@@ -8,7 +8,7 @@ import 'package:childhouse/view/notes/create_update_note_view.dart';
 
 import 'package:childhouse/view/notes/view_notes.dart';
 import 'package:childhouse/view/view_login.dart';
-import 'package:childhouse/view/view_register.dart';
+
 import 'package:childhouse/view/view_verify.dart';
 
 import 'package:flutter/material.dart';
@@ -28,10 +28,7 @@ void main() {
     child:const  HomePage(),
     ),
     routes: {
-      loginRoute: (context) => const ViewLogin(),
-      registerRoute: (context) => const ViewRegister(),
-      childhouseRoute: (context) => const NotesView(),
-      verifyEmailRoute :(context) => const VerifyEmailView(),
+      
       createOrUpdateNoteRoute: (context) => const CreateUpdateNoteView(),
     },
   ));
